@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12382e">
+  <title>Melton Pool League | Elo Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --felt: #12382e;
+      --felt-deep: #0b2b24;
+      --chalk: #f4f3ec;
+      --paper: #fffefa;
+      --ink: #17231f;
+      --muted: #66716b;
+      --line: #dfe2d9;
+      --lime: #c8e66b;
+      --coral: #e7795d;
+      --gold: #e1b44f;
+      --silver: #c8d0cc;
+      --bronze: #ca8c66;
+      --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --body: "DM Sans", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--chalk);
+      font-family: var(--body);
+      font-size: 14px;
+    }
+    button, input, select { font: inherit; }
+    .masthead {
+      color: #fffefa;
+      background-color: var(--felt);
+      background-image: repeating-linear-gradient(135deg, transparent 0 42px, rgb(255 255 255 / 2.4%) 42px 44px);
+      border-bottom: 5px solid var(--lime);
+    }
+    .masthead-inner, main, .footer-inner { width: min(1220px, calc(100% - 48px)); margin: 0 auto; }
+    .masthead-inner { padding: 24px 0 30px; }
+    .brandline { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: inherit; text-decoration: none; }
+    .brand-mark { display: grid; width: 35px; aspect-ratio: 1; place-items: center; border: 1px solid rgb(255 255 255 / 45%); border-radius: 50%; font: 700 16px var(--display); color: var(--lime); }
+    .brand-copy { display: grid; gap: 1px; }
+    .brand-copy strong { font-size: 12px; letter-spacing: 0; }
+    .brand-copy span { color: #b5c5bd; font-size: 10px; }
+    .version { padding: 7px 10px; border: 1px solid rgb(255 255 255 / 24%); color: #d9e5dd; font-size: 11px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 40px; padding: 42px 0 28px; }
+    .eyebrow { margin: 0 0 8px; color: var(--lime); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    h1 { margin: 0; font: 700 52px/0.96 var(--display); }
+    .hero-note { margin: 11px 0 0; color: #bdcdc4; font-size: 13px; }
+    .top-rating { min-width: 185px; padding-left: 20px; border-left: 1px solid rgb(255 255 255 / 24%); }
+    .top-rating span { display: block; color: #bdcdc4; font-size: 11px; }
+    .top-rating strong { display: block; margin-top: 1px; color: var(--lime); font: 700 42px/1 var(--display); }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgb(255 255 255 / 20%); }
+    .metric { padding: 16px 18px 0 0; }
+    .metric + .metric { padding-left: 18px; border-left: 1px solid rgb(255 255 255 / 18%); }
+    .metric span { display: block; color: #bdcdc4; font-size: 10px; text-transform: uppercase; }
+    .metric strong { display: block; margin-top: 4px; font: 600 24px/1 var(--display); }
+    main { padding: 28px 0 54px; }
+    .overview { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr); gap: 28px; align-items: stretch; margin-bottom: 30px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+    h2 { margin: 0; font: 700 23px/1 var(--display); }
+    .subtle { color: var(--muted); font-size: 11px; }
+    .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .podium-item { position: relative; min-width: 0; min-height: 104px; padding: 13px 14px; overflow: hidden; background: var(--paper); border-top: 3px solid var(--line); }
+    .podium-item[data-rank="1"] { border-top-color: var(--gold); }
+    .podium-item[data-rank="2"] { border-top-color: var(--silver); }
+    .podium-item[data-rank="3"] { border-top-color: var(--bronze); }
+    .podium-rank { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .podium-name { display: block; max-width: 100%; margin-top: 8px; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .podium-rating { display: block; margin-top: 1px; color: var(--felt); font: 700 24px/1 var(--display); }
+    .chart-panel { padding: 0 0 0 22px; border-left: 1px solid var(--line); }
+    .chart { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); align-items: end; gap: 7px; height: 83px; padding-top: 9px; border-bottom: 1px solid #b8c1b8; }
+    .bar-wrap { display: flex; height: 100%; flex-direction: column; justify-content: end; align-items: center; gap: 4px; }
+    .bar { width: 100%; min-height: 3px; background: #7eaa7d; }
+    .bar-label { color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .chart-caption { display: flex; justify-content: space-between; margin-top: 7px; color: var(--muted); font-size: 10px; }
+    .board { border-top: 1px solid var(--line); }
+    .board-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 21px 0 14px; }
+    .board-title h2 { font-size: 27px; }
+    .board-title p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .controls { display: flex; align-items: center; gap: 9px; }
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; top: 50%; left: 11px; width: 15px; height: 15px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .search, .minimum, .activity { height: 38px; border: 1px solid #cbd2c9; border-radius: 0; background: var(--paper); color: var(--ink); }
+    .search { width: 220px; padding: 0 11px 0 34px; }
+    .minimum, .activity { padding: 0 30px 0 10px; }
+    .search:focus, .minimum:focus, .activity:focus { outline: 2px solid #698d68; outline-offset: 1px; }
+    .activity { max-width: 172px; }
+    .player-filter { margin: 0 0 14px; border-top: 1px solid var(--line); background: var(--paper); }
+    .filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 13px 7px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .clear-pins, .pin-button, .remove-pin { border: 0; border-radius: 0; background: transparent; color: var(--felt); cursor: pointer; font-weight: 700; }
+    .clear-pins { padding: 2px 0; font-size: 10px; text-decoration: underline; }
+    .pinned-list { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 13px 11px; }
+    .pinned-player { display: inline-flex; align-items: center; gap: 7px; padding: 5px 7px; border: 1px solid #cbd2c9; color: var(--ink); font-size: 11px; }
+    .remove-pin { display: grid; width: 18px; aspect-ratio: 1; place-items: center; padding: 0; font-size: 15px; }
+    .search-results { border-top: 1px solid var(--line); }
+    .search-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 41px; padding: 6px 13px; border-top: 1px solid #e9ebe4; }
+    .search-result:first-child { border-top: 0; }
+    .search-result-name { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+    .search-result-rating { margin-left: 7px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .pin-button { min-width: 56px; padding: 6px 8px; border: 1px solid #9aaa98; font-size: 10px; }
+    .pin-button:hover:not(:disabled), .clear-pins:hover, .remove-pin:hover { color: #577d36; }
+    .pin-button:disabled { border-color: var(--line); color: var(--muted); cursor: default; }
+    .search-empty { padding: 12px 13px; color: var(--muted); font-size: 11px; }
+    [hidden] { display: none !important; }
+    .player-detail-button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+    .player-detail-button:hover { color: #577d36; text-decoration: underline; }
+    .player-dialog { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px; }
+    .dialog-backdrop { position: absolute; inset: 0; border: 0; background: rgb(11 43 36 / 72%); cursor: pointer; }
+    .player-dialog-panel { position: relative; width: min(100%, 1040px); max-height: min(92vh, 900px); overflow: auto; background: var(--paper); box-shadow: 0 18px 60px rgb(0 0 0 / 28%); }
+    .dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 19px 22px 15px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { font-size: 30px; }
+    .dialog-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .dialog-close { display: grid; width: 36px; aspect-ratio: 1; flex: 0 0 auto; place-items: center; border: 1px solid #cbd2c9; background: transparent; color: var(--ink); font-size: 21px; cursor: pointer; }
+    .dialog-close:hover { background: #edf1e8; }
+    .player-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
+    .player-stat { padding: 12px 20px; border-right: 1px solid var(--line); }
+    .player-stat:last-child { border-right: 0; }
+    .player-stat span { display: block; color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    .player-stat strong { display: block; margin-top: 3px; font: 700 22px/1 var(--display); }
+    .history-section { padding: 18px 22px; }
+    .history-section h3 { margin: 0 0 10px; font: 700 20px/1 var(--display); }
+    .history-chart { display: block; width: 100%; height: 240px; overflow: visible; background: #f8f8f2; border-bottom: 1px solid #b8c1b8; }
+    .history-chart text { fill: var(--muted); font: 10px var(--body); }
+    .history-grid { stroke: #dfe2d9; stroke-width: 1; }
+    .history-line { fill: none; stroke: #426f50; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+    .history-point { fill: var(--coral); stroke: var(--paper); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .history-chart { cursor: crosshair; outline-offset: 2px; touch-action: pan-y; }
+    .history-cursor { stroke: #bf604b; stroke-dasharray: 4 3; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .history-cursor-point { fill: var(--coral); stroke: var(--paper); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .history-tooltip { min-height: 34px; margin: 0; padding: 9px 11px; background: #edf1e8; color: var(--ink); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .history-table-scroll { max-height: 330px; overflow: auto; border-top: 2px solid var(--felt); }
+    .history-table { min-width: 660px; }
+    .history-table th { position: sticky; top: 0; z-index: 1; background: #f3f4ee; }
+    .history-table td { height: 39px; }
+    .history-result-win { color: #3e7148; font-weight: 700; }
+    .history-result-loss { color: #a54e3b; font-weight: 700; }
+    .history-empty { padding: 24px; color: var(--muted); text-align: center; }
+    .table-scroll { overflow-x: auto; background: var(--paper); border-top: 2px solid var(--felt); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { height: 38px; padding: 0 15px; color: #53615a; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    td { height: 51px; padding: 0 15px; border-top: 1px solid #e9ebe4; font-variant-numeric: tabular-nums; }
+    tbody tr:hover { background: #f4f7ef; }
+    .rank-cell { width: 65px; color: var(--muted); font: 600 17px var(--display); }
+    .player-name { min-width: 190px; font-weight: 700; }
+    .rating-cell { color: var(--felt); font: 700 22px var(--display); }
+    .record { color: #34433b; white-space: nowrap; }
+    .peak, .last-played { color: #56635c; white-space: nowrap; }
+    .badge { display: inline-block; margin-left: 7px; padding: 3px 5px; background: #f5ead7; color: #82591a; font-size: 9px; font-weight: 700; text-transform: uppercase; vertical-align: 2px; }
+    .empty { padding: 30px 15px; color: var(--muted); text-align: center; }
+    .table-summary { display: flex; justify-content: space-between; padding: 10px 2px; color: var(--muted); font-size: 10px; }
+    footer { border-top: 1px solid var(--line); }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; padding: 15px 0 22px; color: var(--muted); font-size: 10px; }
+
+    @media (max-width: 760px) {
+      .masthead-inner, main, .footer-inner { width: min(100% - 30px, 1220px); }
+      .hero { grid-template-columns: 1fr; gap: 22px; padding-top: 34px; }
+      h1 { font-size: 44px; }
+      .top-rating { padding: 0; border: 0; }
+      .top-rating strong { font-size: 36px; }
+      .overview { grid-template-columns: 1fr; gap: 26px; }
+      .chart-panel { padding: 0; border: 0; }
+      .board-head { align-items: flex-start; flex-direction: column; }
+      .controls { width: 100%; }
+      .search-wrap { flex: 1; }
+      .search { width: 100%; }
+      .table-scroll { margin-right: -15px; }
+      table { min-width: 670px; }
+    }
+    @media (max-width: 430px) {
+      .masthead-inner, main, .footer-inner { width: calc(100% - 24px); }
+      .version { font-size: 9px; }
+      .metric { padding-right: 8px; }
+      .metric + .metric { padding-left: 9px; }
+      .metric strong { font-size: 21px; }
+      .podium { gap: 6px; }
+      .podium-item { min-height: 95px; padding: 10px 8px; }
+      .podium-name { font-size: 11px; }
+      .podium-rating { font-size: 21px; }
+      .minimum { max-width: 112px; }
+      .controls { flex-wrap: wrap; }
+      .search-wrap { flex-basis: 100%; }
+      .activity { max-width: 172px; }
+      .footer-inner { flex-direction: column; gap: 5px; }
+      .player-dialog { padding: 0; }
+      .player-dialog-panel { width: 100%; max-height: 100vh; min-height: 100vh; }
+      .dialog-head, .history-section { padding-right: 14px; padding-left: 14px; }
+      .dialog-head h2 { font-size: 25px; }
+      .player-stat { padding: 10px 9px; }
+      .player-stat strong { font-size: 18px; }
+      .history-chart { height: 190px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brandline">
+        <a class="brand" href="#top" aria-label="Melton Pool League Elo leaderboard">
+          <span class="brand-mark">M</span>
+          <span class="brand-copy"><strong>MELTON POOL LEAGUE</strong><span>PLAYER RATINGS</span></span>
+        </a>
+        <span class="version">ELO BOARD / V1</span>
+      </div>
+      <div class="hero" id="top">
+        <div>
+          <p class="eyebrow">Singles · All divisions</p>
+          <h1>Current leaderboard</h1>
+          <p class="hero-note" id="date-range"></p>
+        </div>
+        <div class="top-rating"><span>Highest current rating</span><strong id="top-rating">—</strong></div>
+      </div>
+      <div class="metrics" aria-label="Rating database summary">
+        <div class="metric"><span>Rated players</span><strong id="player-count">—</strong></div>
+        <div class="metric"><span>Singles rated</span><strong id="game-count">—</strong></div>
+        <div class="metric"><span>Rating model</span><strong id="model-label">—</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="overview" aria-label="Leaderboard overview">
+      <div>
+        <div class="section-heading"><h2>Top rated</h2><span class="subtle" id="top-eligibility"></span></div>
+        <div class="podium" id="podium"></div>
+      </div>
+      <div class="chart-panel">
+        <div class="section-heading"><h2>Rating spread</h2><span class="subtle">All players</span></div>
+        <div class="chart" id="rating-chart" role="img" aria-label="Distribution of player ratings"></div>
+        <div class="chart-caption"><span id="chart-low"></span><span id="chart-high"></span></div>
+      </div>
+    </section>
+
+    <section class="board" aria-labelledby="board-heading">
+      <div class="board-head">
+        <div class="board-title"><h2 id="board-heading">Player ratings</h2><p id="qualification-note"></p></div>
+        <div class="controls">
+          <label class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8"/></svg>
+            <input id="search" class="search" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player">
+          </label>
+          <label>
+            <select id="minimum-games" class="minimum" aria-label="Minimum games played">
+              <option value="20" selected>20+ games</option>
+              <option value="50">50+ games</option>
+              <option value="0">All players</option>
+            </select>
+          </label>
+          <label>
+            <select id="activity-scope" class="activity" aria-label="Player activity period">
+              <option value="all-time" selected>All-time</option>
+              <option value="last-year">Played in last year</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="player-filter" class="player-filter" hidden>
+        <div class="filter-heading"><span id="pinned-count">Pinned players</span><button id="clear-pins" class="clear-pins" type="button">Clear</button></div>
+        <div id="pinned-list" class="pinned-list"></div>
+        <div id="search-results" class="search-results" aria-live="polite"></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Rank</th><th>Player</th><th>Rating</th><th>Record</th><th>Games</th><th>Peak</th><th>Last played</th></tr></thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+      <div class="table-summary"><span id="visible-count"></span><span id="record-count"></span></div>
+    </section>
+    <div id="player-dialog" class="player-dialog" hidden>
+      <button class="dialog-backdrop" type="button" aria-label="Close player history"></button>
+      <section class="player-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-player-name">
+        <header class="dialog-head">
+          <div><p id="dialog-player-meta">Player history</p><h2 id="dialog-player-name"></h2></div>
+          <button id="dialog-close" class="dialog-close" type="button" aria-label="Close player history">×</button>
+        </header>
+        <div class="player-stats">
+          <div class="player-stat"><span>Current Elo</span><strong id="dialog-rating"></strong></div>
+          <div class="player-stat"><span>Peak Elo</span><strong id="dialog-peak"></strong></div>
+          <div class="player-stat"><span>Record</span><strong id="dialog-record"></strong></div>
+          <div class="player-stat"><span>Win rate</span><strong id="dialog-win-rate"></strong></div>
+        </div>
+        <section class="history-section" aria-labelledby="history-chart-title">
+          <h3 id="history-chart-title">Elo over time</h3>
+          <svg id="history-chart" class="history-chart" viewBox="0 0 720 220" role="group" tabindex="0" aria-describedby="history-tooltip"></svg>
+          <p id="history-tooltip" class="history-tooltip" aria-live="polite">Scroll or move across the graph to inspect each match.</p>
+        </section>
+        <section class="history-section" aria-labelledby="history-table-title">
+          <h3 id="history-table-title">Match history</h3>
+          <div class="history-table-scroll">
+            <table class="history-table">
+              <thead><tr><th>Date</th><th>Opponent</th><th>Elo matchup</th><th>Result</th><th>Elo change</th></tr></thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <footer><div class="footer-inner"><span id="methodology"></span><span>Melton Pool League · Elo ratings</span></div></footer>
+
+  <script>
+    const DATA = __LEADERBOARD_DATA__;
+    const HISTORY = DATA.history;
+    const numberFormat = new Intl.NumberFormat("en-GB");
+    const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
+    const players = DATA.players;
+    const summary = DATA.summary;
+    const search = document.getElementById("search");
+    const minimumGames = document.getElementById("minimum-games");
+    const activityScope = document.getElementById("activity-scope");
+    const pinnedIds = new Set();
+    const playerDialog = document.getElementById("player-dialog");
+    let lastDialogTrigger = null;
+    const yearAgo = new Date(`${summary.latest_date}T00:00:00Z`);
+    yearAgo.setUTCFullYear(yearAgo.getUTCFullYear() - 1);
+    const activityCutoff = yearAgo.toISOString().slice(0, 10);
+
+    function formatDate(value) {
+      return value ? dateFormat.format(new Date(`${value}T00:00:00Z`)) : "—";
+    }
+
+    function isInActivityScope(player) {
+      return activityScope.value !== "last-year" || Boolean(player.last_played && player.last_played >= activityCutoff);
+    }
+
+    function renderSummary() {
+      document.getElementById("player-count").textContent = numberFormat.format(summary.players);
+      document.getElementById("game-count").textContent = numberFormat.format(summary.games);
+      document.getElementById("top-rating").textContent = players.length ? Math.round(summary.top_rating) : "—";
+      document.getElementById("model-label").textContent = `K = ${summary.k_factor}`;
+      document.getElementById("date-range").textContent = summary.earliest_date
+        ? `${formatDate(summary.earliest_date)} — ${formatDate(summary.latest_date)}`
+        : "No games loaded";
+      document.getElementById("methodology").textContent =
+        `Standard Elo · Start ${summary.initial_rating} · K = ${summary.k_factor} · Provisional below ${summary.provisional_games} games`;
+    }
+
+    function renderPodium() {
+      const minimum = Number(minimumGames.value);
+      const qualified = players.filter((player) => player.games >= minimum && isInActivityScope(player)).slice(0, 3);
+      const podium = document.getElementById("podium");
+      podium.replaceChildren();
+      qualified.forEach((player, index) => {
+        const position = document.createElement("div");
+        position.className = "podium-item";
+        position.dataset.rank = String(index + 1);
+        const rank = document.createElement("span");
+        rank.className = "podium-rank";
+        rank.textContent = `RANK 0${index + 1}`;
+        const name = document.createElement("strong");
+        name.className = "podium-name";
+        name.textContent = player.name;
+        name.title = player.name;
+        const rating = document.createElement("span");
+        rating.className = "podium-rating";
+        rating.textContent = Math.round(player.rating).toLocaleString("en-GB");
+        position.append(rank, name, rating);
+        podium.append(position);
+      });
+      const gameLabel = minimum ? `${minimum}+ games` : "All players";
+      const activityLabel = activityScope.value === "last-year" ? "Played in last year" : "All-time";
+      document.getElementById("top-eligibility").textContent = `${gameLabel} · ${activityLabel}`;
+    }
+
+    function renderChart() {
+      const chart = document.getElementById("rating-chart");
+      chart.replaceChildren();
+      if (!players.length) return;
+      const ratings = players.map((player) => player.rating);
+      const low = Math.floor(Math.min(...ratings) / 100) * 100;
+      const high = Math.ceil(Math.max(...ratings) / 100) * 100 || low + 100;
+      const span = Math.max(high - low, 100);
+      const bins = Array.from({ length: 8 }, () => 0);
+      ratings.forEach((rating) => {
+        const index = Math.min(7, Math.floor(((rating - low) / span) * 8));
+        bins[index] += 1;
+      });
+      const maxBin = Math.max(...bins, 1);
+      bins.forEach((count, index) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        wrap.title = `${count} players`;
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = `${Math.max(4, (count / maxBin) * 65)}px`;
+        const label = document.createElement("span");
+        label.className = "bar-label";
+        label.textContent = String(Math.round(low + (span * index) / 8));
+        wrap.append(bar, label);
+        chart.append(wrap);
+      });
+      document.getElementById("chart-low").textContent = `${Math.round(Math.min(...ratings))} Elo`;
+      document.getElementById("chart-high").textContent = `${Math.round(Math.max(...ratings))} Elo`;
+    }
+
+    function makeCell(text, className) {
+      const cell = document.createElement("td");
+      cell.textContent = text;
+      if (className) cell.className = className;
+      return cell;
+    }
+
+    function svgElement(name, attributes = {}) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, String(value)));
+      return element;
+    }
+
+    function renderHistoryChart(player, history) {
+      const chart = document.getElementById("history-chart");
+      chart.replaceChildren();
+      chart.setAttribute("aria-label", `Elo rating history for ${player.name}`);
+      if (!history.length) return;
+
+      const width = 720;
+      const height = 220;
+      const padding = { top: 15, right: 15, bottom: 30, left: 48 };
+      const ratings = history.map((entry) => entry[6]);
+      let low = Math.floor(Math.min(...ratings) / 100) * 100;
+      let high = Math.ceil(Math.max(...ratings) / 100) * 100;
+      if (high === low) high = low + 100;
+      const plotWidth = width - padding.left - padding.right;
+      const plotHeight = height - padding.top - padding.bottom;
+      const yForRating = (rating) => padding.top + ((high - rating) / (high - low)) * plotHeight;
+
+      for (let tick = 0; tick <= 4; tick += 1) {
+        const rating = low + ((high - low) * tick) / 4;
+        const y = yForRating(rating);
+        chart.append(
+          svgElement("line", { x1: padding.left, y1: y, x2: width - padding.right, y2: y, class: "history-grid" }),
+          Object.assign(svgElement("text", { x: padding.left - 8, y: y + 3, "text-anchor": "end" }), { textContent: String(Math.round(rating)) }),
+        );
+      }
+
+      const points = history.map((entry, index) => {
+        const x = padding.left + (history.length < 2 ? plotWidth / 2 : (index / (history.length - 1)) * plotWidth);
+        return { x, y: yForRating(entry[6]) };
+      });
+      chart.append(
+        svgElement("path", {
+          d: points.map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" "),
+          class: "history-line",
+        }),
+        svgElement("circle", { cx: points[0].x, cy: points[0].y, r: 3, class: "history-point" }),
+        svgElement("circle", { cx: points.at(-1).x, cy: points.at(-1).y, r: 4, class: "history-point" }),
+      );
+      const cursorLine = svgElement("line", { y1: padding.top, y2: height - padding.bottom, class: "history-cursor" });
+      const cursorPoint = svgElement("circle", { r: 5, class: "history-cursor-point" });
+      chart.append(cursorLine, cursorPoint);
+      const firstDate = Object.assign(svgElement("text", { x: padding.left, y: height - 7 }), { textContent: formatDate(history[0][0]) });
+      const lastDate = Object.assign(svgElement("text", { x: width - padding.right, y: height - 7, "text-anchor": "end" }), { textContent: formatDate(history.at(-1)[0]) });
+      chart.append(firstDate, lastDate);
+
+      const tooltip = document.getElementById("history-tooltip");
+      let selectedIndex = history.length - 1;
+      const selectPoint = (index) => {
+        selectedIndex = Math.max(0, Math.min(history.length - 1, index));
+        const point = points[selectedIndex];
+        const entry = history[selectedIndex];
+        cursorLine.setAttribute("x1", String(point.x));
+        cursorLine.setAttribute("x2", String(point.x));
+        cursorPoint.setAttribute("cx", String(point.x));
+        cursorPoint.setAttribute("cy", String(point.y));
+        const change = `${entry[5] > 0 ? "+" : ""}${entry[5].toFixed(1)}`;
+        tooltip.textContent = `${formatDate(entry[0])} · Elo ${entry[6].toFixed(1)} · ${entry[2] === "W" ? "Win" : "Loss"} vs ${entry[1]} · ${change} Elo · ${selectedIndex + 1} of ${history.length}`;
+      };
+
+      chart.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        if (event.deltaY !== 0) selectPoint(selectedIndex - Math.sign(event.deltaY));
+      }, { passive: false });
+      chart.addEventListener("pointermove", (event) => {
+        const bounds = chart.getBoundingClientRect();
+        const chartX = ((event.clientX - bounds.left) / bounds.width) * width;
+        if (chartX < padding.left || chartX > width - padding.right) return;
+        const index = history.length < 2
+          ? 0
+          : Math.round(((chartX - padding.left) / plotWidth) * (history.length - 1));
+        selectPoint(index);
+      });
+      chart.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+          event.preventDefault();
+          selectPoint(selectedIndex - 1);
+        } else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+          event.preventDefault();
+          selectPoint(selectedIndex + 1);
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          selectPoint(0);
+        } else if (event.key === "End") {
+          event.preventDefault();
+          selectPoint(history.length - 1);
+        }
+      });
+      selectPoint(selectedIndex);
+    }
+
+    function openPlayerHistory(player, trigger) {
+      const history = HISTORY[player.id] || [];
+      lastDialogTrigger = trigger;
+      document.getElementById("dialog-player-name").textContent = player.name;
+      document.getElementById("dialog-player-meta").textContent = `${history.length} singles games · Elo history`;
+      document.getElementById("dialog-rating").textContent = Math.round(player.rating).toLocaleString("en-GB");
+      document.getElementById("dialog-peak").textContent = Math.round(player.peak_rating).toLocaleString("en-GB");
+      document.getElementById("dialog-record").textContent = `${player.wins}W – ${player.losses}L`;
+      document.getElementById("dialog-win-rate").textContent = `${Math.round((player.wins / player.games) * 100)}%`;
+      renderHistoryChart(player, history);
+
+      const body = document.getElementById("history-body");
+      const fragment = document.createDocumentFragment();
+      [...history].reverse().forEach((entry) => {
+        const row = document.createElement("tr");
+        row.append(
+          makeCell(formatDate(entry[0])),
+          makeCell(entry[1]),
+          makeCell(`${Math.round(entry[3]).toLocaleString("en-GB")} vs ${Math.round(entry[4]).toLocaleString("en-GB")}`, "record"),
+          makeCell(entry[2] === "W" ? "Win" : "Loss", entry[2] === "W" ? "history-result-win" : "history-result-loss"),
+          makeCell(`${entry[5] > 0 ? "+" : ""}${entry[5].toFixed(1)}`, entry[5] > 0 ? "history-result-win" : "history-result-loss"),
+        );
+        fragment.append(row);
+      });
+      body.replaceChildren(fragment);
+      playerDialog.hidden = false;
+      document.getElementById("dialog-close").focus();
+    }
+
+    function renderPlayerFilter() {
+      const query = search.value.trim().toLocaleLowerCase("en-GB");
+      const filter = document.getElementById("player-filter");
+      const pinnedList = document.getElementById("pinned-list");
+      const searchResults = document.getElementById("search-results");
+      const pinnedPlayers = players.filter((player) => pinnedIds.has(player.id));
+      filter.hidden = pinnedPlayers.length === 0 && query.length === 0;
+      document.getElementById("pinned-count").textContent = `Pinned players (${pinnedPlayers.length})`;
+
+      pinnedList.replaceChildren();
+      pinnedPlayers.forEach((player) => {
+        const pin = document.createElement("span");
+        pin.className = "pinned-player";
+        const name = document.createElement("span");
+        name.textContent = player.name;
+        const remove = document.createElement("button");
+        remove.className = "remove-pin";
+        remove.type = "button";
+        remove.textContent = "×";
+        remove.title = `Remove ${player.name}`;
+        remove.setAttribute("aria-label", `Remove ${player.name} from pinned players`);
+        remove.addEventListener("click", () => {
+          pinnedIds.delete(player.id);
+          render();
+        });
+        pin.append(name, remove);
+        pinnedList.append(pin);
+      });
+
+      searchResults.replaceChildren();
+      if (!query) return;
+      const matches = players
+        .filter((player) => player.name.toLocaleLowerCase("en-GB").includes(query))
+        .slice(0, 8);
+      if (!matches.length) {
+        const empty = document.createElement("div");
+        empty.className = "search-empty";
+        empty.textContent = "No players found.";
+        searchResults.append(empty);
+        return;
+      }
+      matches.forEach((player) => {
+        const result = document.createElement("div");
+        result.className = "search-result";
+        const details = document.createElement("div");
+        details.className = "search-result-name";
+        details.textContent = player.name;
+        const rating = document.createElement("span");
+        rating.className = "search-result-rating";
+        rating.textContent = `${Math.round(player.rating)} Elo`;
+        details.append(rating);
+        const add = document.createElement("button");
+        add.className = "pin-button";
+        add.type = "button";
+        add.textContent = pinnedIds.has(player.id) ? "Pinned" : "Add";
+        add.disabled = pinnedIds.has(player.id);
+        add.setAttribute("aria-label", `Add ${player.name} to pinned players`);
+        add.addEventListener("click", () => {
+          pinnedIds.add(player.id);
+          render();
+        });
+        result.append(details, add);
+        searchResults.append(result);
+      });
+    }
+
+    function renderTable() {
+      const query = search.value.trim().toLocaleLowerCase("en-GB");
+      const minimum = Number(minimumGames.value);
+      const visible = players.filter((player) =>
+        isInActivityScope(player) && (pinnedIds.size
+          ? pinnedIds.has(player.id)
+          : player.games >= minimum && player.name.toLocaleLowerCase("en-GB").includes(query))
+      );
+      const body = document.getElementById("leaderboard-body");
+      const fragment = document.createDocumentFragment();
+      visible.forEach((player, index) => {
+        const row = document.createElement("tr");
+        const rank = makeCell(String(index + 1), "rank-cell");
+        const name = document.createElement("td");
+        name.className = "player-name";
+        const detailsButton = document.createElement("button");
+        detailsButton.className = "player-detail-button";
+        detailsButton.type = "button";
+        detailsButton.textContent = player.name;
+        detailsButton.addEventListener("click", () => openPlayerHistory(player, detailsButton));
+        name.append(detailsButton);
+        if (player.provisional) {
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = "Provisional";
+          name.append(badge);
+        }
+        row.append(
+          rank,
+          name,
+          makeCell(Math.round(player.rating).toLocaleString("en-GB"), "rating-cell"),
+          makeCell(`${player.wins}W – ${player.losses}L`, "record"),
+          makeCell(numberFormat.format(player.games), "record"),
+          makeCell(Math.round(player.peak_rating).toLocaleString("en-GB"), "peak"),
+          makeCell(formatDate(player.last_played), "last-played"),
+        );
+        fragment.append(row);
+      });
+      if (!visible.length) {
+        const row = document.createElement("tr");
+        const cell = makeCell("No players match this view.", "empty");
+        cell.colSpan = 7;
+        row.append(cell);
+        fragment.append(row);
+      }
+      body.replaceChildren(fragment);
+      document.getElementById("visible-count").textContent = `${numberFormat.format(visible.length)} players shown`;
+      document.getElementById("record-count").textContent = `${numberFormat.format(summary.games)} games processed`;
+    }
+
+    function render() {
+      renderPodium();
+      renderPlayerFilter();
+      renderTable();
+    }
+
+    renderSummary();
+    renderChart();
+    render();
+    search.addEventListener("input", renderTable);
+    search.addEventListener("input", renderPlayerFilter);
+    minimumGames.addEventListener("change", render);
+    activityScope.addEventListener("change", render);
+    document.getElementById("clear-pins").addEventListener("click", () => {
+      pinnedIds.clear();
+      render();
+    });
+    document.getElementById("dialog-close").addEventListener("click", () => {
+      playerDialog.hidden = true;
+      lastDialogTrigger?.focus();
+    });
+    playerDialog.querySelector(".dialog-backdrop").addEventListener("click", () => {
+      playerDialog.hidden = true;
+      lastDialogTrigger?.focus();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !playerDialog.hidden) {
+        playerDialog.hidden = true;
+        lastDialogTrigger?.focus();
+      }
+    });
+  </script>
+</body>
+</html>
