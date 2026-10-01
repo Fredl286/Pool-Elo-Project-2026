@@ -58,7 +58,7 @@
     .top-rating { min-width: 185px; padding-left: 20px; border-left: 1px solid rgb(255 255 255 / 24%); }
     .top-rating span { display: block; color: #bdcdc4; font-size: 11px; }
     .top-rating strong { display: block; margin-top: 1px; color: var(--lime); font: 700 42px/1 var(--display); }
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgb(255 255 255 / 20%); }
+    .metrics { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid rgb(255 255 255 / 20%); }
     .metric { padding: 16px 18px 0 0; }
     .metric + .metric { padding-left: 18px; border-left: 1px solid rgb(255 255 255 / 18%); }
     .metric span { display: block; color: #bdcdc4; font-size: 10px; text-transform: uppercase; }
@@ -208,7 +208,6 @@
           <span class="brand-mark">M</span>
           <span class="brand-copy"><strong>MELTON POOL LEAGUE</strong><span>PLAYER RATINGS</span></span>
         </a>
-        <span class="version">ELO BOARD / V1</span>
       </div>
       <div class="hero" id="top">
         <div>
@@ -220,8 +219,7 @@
       </div>
       <div class="metrics" aria-label="Rating database summary">
         <div class="metric"><span>Rated players</span><strong id="player-count">—</strong></div>
-        <div class="metric"><span>Singles rated</span><strong id="game-count">—</strong></div>
-        <div class="metric"><span>Rating model</span><strong id="model-label">—</strong></div>
+        <div class="metric"><span>Rated singles matches</span><strong id="game-count">—</strong></div>
       </div>
     </div>
   </header>
@@ -305,7 +303,7 @@
       </section>
     </div>
   </main>
-  <footer><div class="footer-inner"><span id="methodology"></span><span>Melton Pool League · Elo ratings</span></div></footer>
+  <footer><div class="footer-inner"><a href="https://github.com/Fredl286/Pool-Elo-Project-2026">View project on GitHub</a></div></footer>
 
   <script>
     const DATA = __LEADERBOARD_DATA__;
@@ -336,12 +334,9 @@
       document.getElementById("player-count").textContent = numberFormat.format(summary.players);
       document.getElementById("game-count").textContent = numberFormat.format(summary.games);
       document.getElementById("top-rating").textContent = players.length ? Math.round(summary.top_rating) : "—";
-      document.getElementById("model-label").textContent = `K = ${summary.k_factor}`;
       document.getElementById("date-range").textContent = summary.earliest_date
         ? `${formatDate(summary.earliest_date)} — ${formatDate(summary.latest_date)}`
         : "No games loaded";
-      document.getElementById("methodology").textContent =
-        `Standard Elo · Start ${summary.initial_rating} · K = ${summary.k_factor} · Provisional below ${summary.provisional_games} games`;
     }
 
     function renderPodium() {
