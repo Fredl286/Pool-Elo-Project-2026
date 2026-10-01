@@ -51,13 +51,10 @@
     .brand-copy strong { font-size: 12px; letter-spacing: 0; }
     .brand-copy span { color: #b5c5bd; font-size: 10px; }
     .version { padding: 7px 10px; border: 1px solid rgb(255 255 255 / 24%); color: #d9e5dd; font-size: 11px; }
-    .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 40px; padding: 42px 0 28px; }
+    .hero { display: grid; grid-template-columns: 1fr; align-items: end; gap: 40px; padding: 42px 0 28px; }
     .eyebrow { margin: 0 0 8px; color: var(--lime); font-size: 11px; font-weight: 700; text-transform: uppercase; }
     h1 { margin: 0; font: 700 52px/0.96 var(--display); }
     .hero-note { margin: 11px 0 0; color: #bdcdc4; font-size: 13px; }
-    .top-rating { min-width: 185px; padding-left: 20px; border-left: 1px solid rgb(255 255 255 / 24%); }
-    .top-rating span { display: block; color: #bdcdc4; font-size: 11px; }
-    .top-rating strong { display: block; margin-top: 1px; color: var(--lime); font: 700 42px/1 var(--display); }
     .metrics { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid rgb(255 255 255 / 20%); }
     .metric { padding: 16px 18px 0 0; }
     .metric + .metric { padding-left: 18px; border-left: 1px solid rgb(255 255 255 / 18%); }
@@ -73,7 +70,8 @@
     .podium-item[data-rank="1"] { border-top-color: var(--gold); }
     .podium-item[data-rank="2"] { border-top-color: var(--silver); }
     .podium-item[data-rank="3"] { border-top-color: var(--bronze); }
-    .podium-rank { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .podium-rank { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .podium-trophy { width: 14px; height: 14px; color: #a57b21; }
     .podium-name { display: block; max-width: 100%; margin-top: 8px; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .podium-rating { display: block; margin-top: 1px; color: var(--felt); font: 700 24px/1 var(--display); }
     .chart-panel { padding: 0 0 0 22px; border-left: 1px solid var(--line); }
@@ -164,8 +162,6 @@
       .masthead-inner, main, .footer-inner { width: min(100% - 30px, 1220px); }
       .hero { grid-template-columns: 1fr; gap: 22px; padding-top: 34px; }
       h1 { font-size: 44px; }
-      .top-rating { padding: 0; border: 0; }
-      .top-rating strong { font-size: 36px; }
       .overview { grid-template-columns: 1fr; gap: 26px; }
       .chart-panel { padding: 0; border: 0; }
       .board-head { align-items: flex-start; flex-direction: column; }
@@ -215,7 +211,6 @@
           <h1>Current leaderboard</h1>
           <p class="hero-note" id="date-range"></p>
         </div>
-        <div class="top-rating"><span>Highest current rating</span><strong id="top-rating">—</strong></div>
       </div>
       <div class="metrics" aria-label="Rating database summary">
         <div class="metric"><span>Rated players</span><strong id="player-count">—</strong></div>
@@ -333,7 +328,6 @@
     function renderSummary() {
       document.getElementById("player-count").textContent = numberFormat.format(summary.players);
       document.getElementById("game-count").textContent = numberFormat.format(summary.games);
-      document.getElementById("top-rating").textContent = players.length ? Math.round(summary.top_rating) : "—";
       document.getElementById("date-range").textContent = summary.earliest_date
         ? `${formatDate(summary.earliest_date)} — ${formatDate(summary.latest_date)}`
         : "No games loaded";
@@ -351,6 +345,26 @@
         const rank = document.createElement("span");
         rank.className = "podium-rank";
         rank.textContent = `RANK 0${index + 1}`;
+        if (index === 0) {
+          const trophy = svgElement("svg", {
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            "stroke-width": 1.8,
+            "stroke-linecap": "round",
+            "stroke-linejoin": "round",
+            "aria-hidden": "true",
+            class: "podium-trophy",
+          });
+          trophy.append(
+            svgElement("path", { d: "M8 21h8" }),
+            svgElement("path", { d: "M12 17v4" }),
+            svgElement("path", { d: "M7 4h10v7a5 5 0 0 1-10 0V4Z" }),
+            svgElement("path", { d: "M7 7H4v2a4 4 0 0 0 4 4" }),
+            svgElement("path", { d: "M17 7h3v2a4 4 0 0 1-4 4" }),
+          );
+          rank.prepend(trophy);
+        }
         const name = document.createElement("strong");
         name.className = "podium-name";
         name.textContent = player.name;
