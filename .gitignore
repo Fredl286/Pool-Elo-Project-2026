@@ -13,5 +13,4 @@ __pycache__/
 Thumbs.db
 
 # Editor
-.vscode/*
-!.vscode/settings.json
+.vscode/
